@@ -54,6 +54,8 @@ dependencies {
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation 'androidx.compose.material3:material3:1.0.0-rc01'
+    //noinspection GradleCompatible
+    implementation "com.android.support:support-compat:28.0.0"
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -63,6 +65,7 @@ dependencies {
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
 
     def media3_version = "1.0.0-rc01"
+    def media2_version = "1.2.1"
     // For media playback using ExoPlayer
     implementation("androidx.media3:media3-exoplayer:$media3_version")
 
@@ -89,6 +92,8 @@ dependencies {
 
     // For exposing and controlling media sessions
     implementation("androidx.media3:media3-session:$media3_version")
+
+    implementation("androidx.media2:media2-session:$media2_version")
 
     // For extracting data from media containers
     implementation("androidx.media3:media3-extractor:$media3_version")

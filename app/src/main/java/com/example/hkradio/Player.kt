@@ -1,11 +1,56 @@
 package com.example.hkradio
 
+import android.content.ComponentName
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaSession2
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 
 object Player {
+    private lateinit var controller: MediaController
+
+    fun setController(controller: MediaController) {
+        this.controller = controller
+    }
+
+    fun play(url: String) {
+        if (!this::controller.isInitialized)
+            return
+
+        val media = MediaItem.Builder().setMediaId(url).build()
+        controller.setMediaItem(media)
+        controller.prepare()
+        controller.play()
+    }
+
+    fun pause() {
+        if (!this::controller.isInitialized)
+            return
+
+        if (controller.isPlaying)
+            controller.pause()
+    }
+
+    fun resume() {
+        if (!this::controller.isInitialized)
+            return
+
+        if (!controller.isPlaying)
+            controller.play()
+    }
+
+    fun stop() {
+        if (!this::controller.isInitialized)
+            return
+
+        controller.stop()
+    }
+}
+
+/*object Player {
     private val player = MediaPlayer()
 
     init {
@@ -41,4 +86,4 @@ object Player {
     fun stop() {
         player.stop()
     }
-}
+}*/

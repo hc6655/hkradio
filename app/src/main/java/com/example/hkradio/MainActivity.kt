@@ -1,11 +1,17 @@
 package com.example.hkradio
 
-import android.app.Activity
+import android.annotation.SuppressLint
+import android.app.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.media.session.MediaSession
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,10 +29,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import com.example.hkradio.ui.theme.HKRadioTheme
+import com.google.android.gms.cast.framework.media.NotificationAction
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.launch
 
+
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -37,11 +54,31 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     ScaffoldScreen()
+                    //play("http://stm.rthk.hk/radio2")
                 }
             }
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
+        val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
+        controllerFuture.addListener(
+            {
+                val controller = controllerFuture.get()
+                Player.setController(controller)
+            },
+            MoreExecutors.directExecutor()
+        )
+    }
+
+    override fun onDestroy() {
+        Player.stop()
+        super.onDestroy()
+    }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
