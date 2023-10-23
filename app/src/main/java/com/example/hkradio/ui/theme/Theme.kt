@@ -37,6 +37,11 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+private val HKRColorScheme = darkColorScheme(
+    background = darkGrey,
+    surface = darkGrey
+)
+
 @Composable
 fun HKRadioTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -49,7 +54,7 @@ fun HKRadioTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme
+        darkTheme -> HKRColorScheme
         else -> LightColorScheme
     }
     val view = LocalView.current

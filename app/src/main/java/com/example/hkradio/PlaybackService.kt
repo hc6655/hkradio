@@ -1,6 +1,7 @@
 package com.example.hkradio
 
-import android.media.MediaPlayer
+import android.app.PendingIntent
+import android.content.Intent
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
@@ -14,8 +15,20 @@ class PlaybackService: MediaSessionService(), MediaSession.Callback {
     override fun onCreate() {
         super.onCreate()
         val player = ExoPlayer.Builder(this).build()
-        mediaSession = MediaSession.Builder(this, player).setCallback(this).build()
+
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        mediaSession = MediaSession.Builder(this, player)
+            .setCallback(this)
+            .setSessionActivity(pendingIntent)
+            .build()
     }
+
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return mediaSession
@@ -30,7 +43,6 @@ class PlaybackService: MediaSessionService(), MediaSession.Callback {
             it.buildUpon().setUri(it.mediaId).build()
         }.toMutableList()
         return Futures.immediateFuture(updatedMediaItems)
-        //return super.onAddMediaItems(mediaSession, controller, mediaItems)
     }
 
     override fun onDestroy() {

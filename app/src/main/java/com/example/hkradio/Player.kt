@@ -4,8 +4,10 @@ import android.content.ComponentName
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaSession2
+import android.net.Uri
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 
@@ -16,11 +18,26 @@ object Player {
         this.controller = controller
     }
 
-    fun play(url: String) {
+    fun gettingController(): MediaController? {
+        return if (::controller.isInitialized) {
+            controller
+        } else {
+            null
+        }
+    }
+
+    fun play(data: ChannelData) {
         if (!this::controller.isInitialized)
             return
 
-        val media = MediaItem.Builder().setMediaId(url).build()
+        val media = MediaItem.Builder()
+            .setMediaId(data.link)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(data.name)
+                    .setArtworkUri(Uri.parse("android.resource://com.example.hkradio/" + data.artwork))
+                    .build()
+            ).build()
         controller.setMediaItem(media)
         controller.prepare()
         controller.play()

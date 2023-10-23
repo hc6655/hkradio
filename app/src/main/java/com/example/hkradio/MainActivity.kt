@@ -31,11 +31,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.hkradio.ui.theme.HKRadioTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.cast.framework.media.NotificationAction
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -43,9 +46,12 @@ import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var controllerFuture: ListenableFuture<MediaController>
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
         setContent {
             HKRadioTheme(darkTheme = true) {
                 // A surface container using the 'background' color from the theme
@@ -53,6 +59,25 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val systemUiController = rememberSystemUiController()
+
+                    SideEffect {
+                        systemUiController.setStatusBarColor(
+                            color = Color(0xff121212),
+                            darkIcons = false
+                        )
+
+                        systemUiController.setNavigationBarColor(
+                            color = Color(0xff121212),
+                            darkIcons = false
+                        )
+
+                        systemUiController.setSystemBarsColor(
+                            color = Color(0xff121212),
+                            darkIcons = false
+                        )
+                    }
+
                     ScaffoldScreen()
                     //play("http://stm.rthk.hk/radio2")
                 }
@@ -63,7 +88,7 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
-        val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
+        controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         controllerFuture.addListener(
             {
                 val controller = controllerFuture.get()
@@ -75,6 +100,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         Player.stop()
+        MediaController.releaseFuture(controllerFuture)
         super.onDestroy()
     }
 }
@@ -86,7 +112,6 @@ fun ScaffoldScreen() {
     var selected by remember { mutableStateOf<ChannelData?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
     var showLoading by remember { mutableStateOf(false) }
-    val activity = (LocalContext.current as? Activity)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
@@ -96,7 +121,7 @@ fun ScaffoldScreen() {
             isLoading = true
             isPlaying = false
             showLoading = true
-            Player.play(selected!!.link)
+            Player.play(selected!!)
             showLoading = false
             isPlaying = true
             isLoading = false
@@ -115,7 +140,10 @@ fun ScaffoldScreen() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("HK Radio") }
+                title = { Text("HK Radio") },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xff121212)
+                )
             )
         },
         bottomBar = {
@@ -126,7 +154,7 @@ fun ScaffoldScreen() {
                         .fillMaxWidth()
                         .height(70.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.DarkGray
+                        containerColor = Color(0xFF212121)
                     )
                 ) {
                     Row(
@@ -171,7 +199,8 @@ fun ScaffoldScreen() {
                 }
             }
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = Color(0xFF121212)
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             LazyColumn {
@@ -186,7 +215,7 @@ fun ScaffoldScreen() {
                         },
                         colors = ListItemDefaults.colors(
                             containerColor = if (selected == channel)
-                                MaterialTheme.colorScheme.primaryContainer
+                                Color(0xFF212121)
                             else
                                 Color.Transparent
                         )
@@ -194,18 +223,6 @@ fun ScaffoldScreen() {
                     Divider()
                 }
             }
-        }
-    }
-
-    BackHandler(enabled = true) {
-        if (snackbarHostState.currentSnackbarData == null) {
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar("再按一次即可離開")
-            }
-        } else {
-            isPlaying = false
-            Player.stop()
-            activity?.finish()
         }
     }
 }
