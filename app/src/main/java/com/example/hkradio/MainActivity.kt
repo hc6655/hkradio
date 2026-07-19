@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,13 +23,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.hkradio.ui.theme.HKRadioTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.common.util.concurrent.ListenableFuture
@@ -108,7 +109,13 @@ fun ScaffoldScreen() {
     val isPause by RadioPlayer.isPause.observeAsState(false)
     var isLoading by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<ChannelData?>(null) }
+    var channels by remember { mutableStateOf(ChannelData.fallback) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // One-shot init fetch. Repository caches, so rotation/recomposition won't refetch.
+    LaunchedEffect(Unit) {
+        channels = ChannelRepository.fetchChannels()
+    }
 
     LaunchedEffect(key1 = selected) {
         if (selected != null) {
@@ -196,7 +203,7 @@ fun ScaffoldScreen() {
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             LazyColumn {
-                items(ChannelData.data) { channel ->
+                items(channels) { channel ->
                     ListItem(
                         headlineText = { Text(
                             text = channel.name,
@@ -213,8 +220,11 @@ fun ScaffoldScreen() {
                         ),
                         leadingContent = {
                             val color = if (selected == channel) Color(0xDF000000) else Color.Transparent
-                            Image(
-                                painter = painterResource(id = channel.artwork),
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(channel.artwork)
+                                    .crossfade(true)
+                                    .build(),
                                 contentDescription = "Image",
                                 modifier = Modifier.size(50.dp),
                                 colorFilter = ColorFilter.tint(color, blendMode = BlendMode.Darken)

@@ -67,6 +67,14 @@ dependencies {
     implementation "androidx.core:core-splashscreen:1.0.1"
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.27.0"
 
+    // Remote image loading in Compose. 2.2.2 pins Kotlin 1.7.10 / Compose 1.2.1 / coroutines 1.6.4
+    // -> matches this toolchain (Kotlin 1.7.0 / Compose compiler 1.2.0). Do NOT bump: 2.4.0+ needs
+    // Kotlin 1.8+, 2.6.0+ needs compileSdk 34. If 2.2.2 warns, drop to 2.1.0.
+    implementation "io.coil-kt:coil-compose:2.2.2"
+
+    // Coroutines for the suspend config fetch. 1.6.4 is the release that pairs with Kotlin 1.7.x.
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
+
     def media3_version = "1.0.0-rc01"
     def media2_version = "1.2.1"
     // For media playback using ExoPlayer

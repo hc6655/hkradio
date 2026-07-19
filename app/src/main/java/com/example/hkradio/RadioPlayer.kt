@@ -42,7 +42,7 @@ object RadioPlayer {
                 MediaMetadata.Builder()
                     .setTitle(data.name)
                     .setArtist(data.artist)
-                    .setArtworkUri(Uri.parse("android.resource://com.example.hkradio/" + data.artwork))
+                    .setArtworkUri(Uri.parse(data.artwork))
                     .build()
             ).build()
         controller.setMediaItem(media)
